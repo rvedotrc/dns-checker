@@ -11,17 +11,17 @@ module DNSChecker
     def get_answer(nameservers, zone, type)
 
       nameservers.each do |ns|
-        if retval = read_cache(ns, zone, type)
+        if answer = read_cache(ns, zone, type)
           puts "(cached)"
-          return retval
+          return answer
         end
       end
 
       nameservers.shuffle.each do |ns|
-        if retval = get_answer_lookup(ns, zone, type)
-          write_cache(ns, zone, type, retval)
+        if answer = get_answer_lookup(ns, zone, type)
+          write_cache(ns, zone, type, answer)
           puts "(fetched)"
-          return retval
+          return answer
         end
       end
 
@@ -46,22 +46,19 @@ module DNSChecker
       rescue Errno::ENOENT
         return nil
       end
-      time, retval = Marshal.restore data
+      time, answer = Marshal.restore data
 
-      p time
-      p retval
-
-      if answer_expired?(retval, time, now)
+      if answer_expired?(answer, time, now)
         puts "cached but expired"
         return nil
       end
 
-      retval
+      answer
     end
 
-    def write_cache(ns, zone, type, retval, now = nil)
+    def write_cache(ns, zone, type, answer, now = nil)
       now ||= Time.now
-      data = Marshal.dump([ now, retval ])
+      data = Marshal.dump([ now, answer ])
       # TODO tmp + rename
       IO.write(cache_file(ns, zone, type), data)
     end
