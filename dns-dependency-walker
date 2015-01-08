@@ -18,11 +18,12 @@ s = Resolv::DNS.new()
 in_zone = Resolv::DNS::Name.create(".")
 servers = DNSChecker::RootServers::SERVER_IPV4
 
+cache = DNSChecker::ResolvCache.new("var/cache")
+
 while true
-  ans = nil
   puts "Asking #{servers} about #{zone}"
   Resolv::DNS.new(:nameserver => servers).fetch_resource(zone, Resolv::DNS::Resource::IN::A) {|*args| ans=args}
-  answer, name = ans
+  answer, name = cache.get_answer(servers, zone, Resolv::DNS::Resource::IN::A)
 
   # TODO check qr, aa, rcode, tc, and so forth
   # Note: no information about which server gave us this response.
