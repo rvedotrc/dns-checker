@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 
-$: << "."
-require 'root-servers'
+$: << "lib"
+require 'resolv'
+require 'dns-checker'
 
 zone = "rve.org.uk"
 zone = "80.237.187.81.in-addr.arpa"
 
-require 'resolv'
 s = Resolv::DNS.new()
 
 #s.each_resource(zone, Resolv::DNS::Resource::IN::NS) do |r|
@@ -16,7 +16,7 @@ s = Resolv::DNS.new()
 #end
 
 in_zone = Resolv::DNS::Name.create(".")
-servers = DNSRoot::SERVER_IPV4
+servers = DNSChecker::RootServers::SERVER_IPV4
 
 while true
   ans = nil
