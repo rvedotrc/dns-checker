@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+$: << "."
+require 'root-servers'
+
+zone = "rve.org.uk"
+zone = "80.237.187.81.in-addr.arpa"
+
+require 'resolv'
+s = Resolv::DNS.new()
+
+#s.each_resource(zone, Resolv::DNS::Resource::IN::NS) do |r|
+#  p r
+#  p r.name
+#  p r.name.to_s
+#end
+
+in_zone = Resolv::DNS::Name.create(".")
+servers = DNSRoot::SERVER_IPV4
+
+while true
+  ans = nil
+  puts "Asking #{servers} about #{zone}"
+  Resolv::DNS.new(:nameserver => servers).fetch_resource(zone, Resolv::DNS::Resource::IN::A) {|*args| ans=args}
+  answer, name = ans
+
+  # TODO check qr, aa, rcode, tc, and so forth
+  # Note: no information about which server gave us this response.
+  # We could ask them all and see if they agree.
+
+  #answer.authority.each do |auth|
+  #  puts "authority #{auth}"
+  #end
+
+  valid_authorities = answer.authority.select do |a|
+    a[2].kind_of? Resolv::DNS::Resource::IN::NS \
+      and (name.subdomain_of? a[0] or name == a[0]) \
+      and a[0].subdomain_of? in_zone
+  end
+
+  # p valid_authorities
+
+  if !valid_authorities.empty?
+    next_zone = valid_authorities.map {|auth| auth[0]}
+    if next_zone.uniq.count > 1
+      raise "Conflicting next-zones under #{zone}: #{next_zone}"
+    end
+    next_zone = next_zone.first
+
+    next_server_names = valid_authorities.map {|auth| auth[2].name}
+    puts "#{in_zone.to_s} delegates to #{next_zone} via #{next_server_names.map {|n| n.to_s}}"
+
+    next_server_addrs = next_server_names.map {|name| Resolv.getaddress name.to_s}
+    puts "server ip addresses are #{next_server_addrs}"
+
+    in_zone = next_zone
+    servers = next_server_addrs
+    next
+  end
+
+  puts "w00t, didn't get a referral"
+  p answer
+  answer.answer.each do |name, ttl, rr_with_ttl|
+    puts "answer #{name} #{rr_with_ttl.inspect}"
+  end
+
+  break
+end
+
