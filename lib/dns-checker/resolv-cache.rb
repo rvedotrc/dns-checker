@@ -32,9 +32,12 @@ module DNSChecker
     private
 
     def get_answer_lookup(ns, zone, type)
-      retval = nil
-      Resolv::DNS.new(:nameserver => [ns]).fetch_resource(zone, type) {|*args| retval = args}
-      retval
+      answer, name = nil
+      Resolv::DNS.new(:nameserver => [ns]).fetch_resource(zone, type) {|*args| answer, name = args}
+      if name != Resolv::DNS::Name.create(zone)
+        raise "wut, asked for #{zone.inspect} got #{name.inspect}"
+      end
+      answer
     end
 
     def read_cache(ns, zone, type, now = nil)
@@ -48,8 +51,7 @@ module DNSChecker
       p time
       p retval
 
-      # because retval = [ answer, name ]
-      if answer_expired?(retval[0], time, now)
+      if answer_expired?(retval, time, now)
         puts "cached but expired"
         return nil
       end
