@@ -4,8 +4,8 @@ $: << "lib"
 require 'resolv'
 require 'dns-checker'
 
-zone = "rve.org.uk."
-zone = "80.237.187.81.in-addr.arpa."
+zone = ARGV.first
+zone = zone + "." unless zone.end_with? "."
 name = Resolv::DNS::Name.create(zone)
 
 s = Resolv::DNS.new()
