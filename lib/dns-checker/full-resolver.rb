@@ -138,10 +138,16 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
           closest_zone, nameservers = closest[:zone], closest[:nameservers]
           puts "Closest zone so far is #{closest_zone.inspect} with nameservers #{nameservers.inspect}"
 
+          # If the referral contains many nameservers, there may not be enough
+          # space (due to response truncation) to include all the glue.  Use
+          # the ones we /have/ got glue for, to find the ones we haven't.
+          pad_nameservers(closest_zone, nameservers)
+
           nameserver_addresses = nameservers.map {|ns| resolve_name_to_addresses ns}\
             .reduce([]) {|arr,nss| arr.concat nss.to_a; arr}
           puts "Zone #{closest_zone.inspect} nameservers resolve to #{nameserver_addresses.inspect}"
 
+          # TODO NXDOMAIN gets thrown as "Didn't get an answer from any nameserver"
           answer = @query_cache.get_answer(nameserver_addresses, name, type)
           puts "Got answer #{answer.inspect}"
 
@@ -160,6 +166,32 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
 
       end
 
+      def pad_nameservers(zone, nameserver_names)
+        unglued_in_zone_ns = nameserver_names.select do |ns|
+          !@host_cache.get(ns) and ns.same_or_subdomain_of? zone
+        end
+
+        if !unglued_in_zone_ns.empty?
+          puts "Zone #{zone.inspect} has unglued_in_zone_ns=#{unglued_in_zone_ns.inspect}"
+
+          tmp_valid = nameserver_names - unglued_in_zone_ns
+          puts "Will temporarily use just #{tmp_valid.inspect}"
+          raise "waah" if tmp_valid.empty?
+
+          begin
+            @zone_cache.add_zone(zone, tmp_valid)
+
+            unglued_in_zone_ns.each do |n|
+              puts "Trying #{n.inspect}"
+              resolve_name_to_addresses n
+            end
+          ensure
+            puts "Restoring full nameserver list for #{zone.inspect}"
+            @zone_cache.add_zone(zone, nameserver_names)
+          end
+        end
+      end
+
       def resolve_name_to_addresses(name)
         addresses = @host_cache.get(name)
         return addresses if addresses
@@ -168,17 +200,17 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
         a_answers = begin
                       @level = @level + 1
                       self.find_answer(name, Resolv::DNS::Resource::IN::A).answer
-                    rescue
+                    ensure
                       @level = @level - 1
                     end
 
         puts "Resolving #{name} to AAAA"
         aaaa_answers = begin
-                      @level = @level + 1
-                      self.find_answer(name, Resolv::DNS::Resource::IN::AAAA).answer
-                    rescue
-                      @level = @level - 1
-                    end
+                         @level = @level + 1
+                         self.find_answer(name, Resolv::DNS::Resource::IN::AAAA).answer
+                        ensure
+                         @level = @level - 1
+                       end
 
         puts "#{name.inspect} A -> #{a_answers}"
         puts "#{name.inspect} AAAA -> #{aaaa_answers}"
