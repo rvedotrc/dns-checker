@@ -24,3 +24,7 @@ ans = full_resolver.find_answer(Resolv::DNS::Name.create(zone), Resolv::DNS::Res
 puts ""
 puts ""
 p ans
+puts ""
+
+STDOUT.reopen(File.open('zone.dot', 'w'))
+DNSChecker::GraphMaker.new.dot(full_resolver.zone_cache)

@@ -36,6 +36,8 @@ module DNSChecker
 .                        3600000      NS    M.ROOT-SERVERS.NET.
       EOF
 
+      attr_accessor :cache
+
       def initialize
         @cache = {}
 
