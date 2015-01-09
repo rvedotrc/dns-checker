@@ -1,6 +1,6 @@
 require 'dns-checker'
 
-describe DNSChecker::ResolvCacheStore do
+describe DNSChecker::ResolvCacheFetcher do
 
   it "should work" do
     puts "meh"
