@@ -19,7 +19,9 @@ s = Resolv::DNS.new()
 in_zone = Resolv::DNS::Name.create(".")
 servers = DNSChecker::RootServers::SERVER_IPV4
 
-cache = DNSChecker::ResolvCache.new("var/cache")
+cache = DNSChecker::ResolvCache.new(
+  DNSChecker::ResolvCacheStore.new("var/cache")
+)
 
 class Resolv
   class DNS

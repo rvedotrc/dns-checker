@@ -2,10 +2,10 @@ module DNSChecker
 
   class ResolvCache
 
-    attr_accessor :dir
+    attr_accessor :store
 
-    def initialize(dir)
-      @dir = dir
+    def initialize(store)
+      @store = store
     end
 
     def get_answer(nameservers, zone, type)
@@ -41,12 +41,10 @@ module DNSChecker
     end
 
     def read_cache(ns, zone, type, now = nil)
-      data = begin
-        IO.read(cache_file(ns, zone, type))
-      rescue Errno::ENOENT
-        return nil
-      end
-      time, answer = Marshal.restore data
+      data = @store.get(cache_key(ns, zone, type))
+      return nil if data.nil?
+
+      time, answer = data
 
       if answer_expired?(answer, time, now)
         puts "cached but expired"
@@ -58,13 +56,12 @@ module DNSChecker
 
     def write_cache(ns, zone, type, answer, now = nil)
       now ||= Time.now
-      data = Marshal.dump([ now, answer ])
-      # TODO tmp + rename
-      IO.write(cache_file(ns, zone, type), data)
+      data = [ now, answer ]
+      @store.put(cache_key(ns, zone, type), data)
     end
 
-    def cache_file(ns, zone, type)
-      "#{@dir}/#{ns}-#{zone.to_s}-#{type.name}"
+    def cache_key(ns, zone, type)
+      "#{ns}-#{zone.to_s}-#{type.name}"
     end
 
     def answer_expired?(answer, time, now)
