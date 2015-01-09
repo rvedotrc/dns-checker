@@ -11,6 +11,14 @@ cache = DNSChecker::ResolvCache.new(
   DNSChecker::ResolvCacheStore.new("var/cache")
 )
 
-servers = DNSChecker::RootServers::SERVER_IPV4
+# servers = DNSChecker::RootServers::SERVER_IPV4
+# DNSChecker::ZoneWalker.new(cache, servers).walk(zone)
 
-DNSChecker::ZoneWalker.new(cache, servers).walk(zone)
+full_resolver = DNSChecker::FullResolver::Resolver.new(
+  DNSChecker::FullResolver::ZoneCache.new,
+  DNSChecker::FullResolver::HostCache.new,
+  cache
+)
+
+ans = full_resolver.find_answer(Resolv::DNS::Name.create(zone), Resolv::DNS::Resource::IN::A)
+p ans
