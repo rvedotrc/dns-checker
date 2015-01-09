@@ -1,3 +1,5 @@
+require 'resolv'
+
 module DNSChecker
 
   class ResolvCacheFetcher
