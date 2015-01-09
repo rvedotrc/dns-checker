@@ -34,11 +34,7 @@ module DNSChecker
 
         #puts "Looking for next-zone referrals"
 
-        valid_authorities = answer.authority.select do |auth_zone, ttl, auth_rr|
-          auth_rr.kind_of? Resolv::DNS::Resource::IN::NS \
-            and auth_zone.subdomain_of?(in_zone) \
-            and auth_zone.same_or_ancestor_of?(target_zone_name)
-        end
+        valid_authorities = referrals(answer, in_zone, target_zone_name)
 
         #puts "Referral authorities = #{valid_authorities.inspect}"
 
@@ -70,6 +66,14 @@ module DNSChecker
         break
       end
 
+    end
+
+    def referrals(answer, in_zone, target_zone_name)
+      answer.authority.select do |auth_zone, ttl, auth_rr|
+        auth_rr.kind_of? Resolv::DNS::Resource::IN::NS \
+          and auth_zone.subdomain_of?(in_zone) \
+          and auth_zone.same_or_ancestor_of?(target_zone_name)
+      end
     end
 
   end
