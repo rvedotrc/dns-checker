@@ -21,4 +21,6 @@ full_resolver = DNSChecker::FullResolver::Resolver.new(
 )
 
 ans = full_resolver.find_answer(Resolv::DNS::Name.create(zone), Resolv::DNS::Resource::IN::A)
+puts ""
+puts ""
 p ans

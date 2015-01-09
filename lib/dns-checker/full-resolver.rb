@@ -120,11 +120,18 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
         @zone_cache = zone_cache
         @host_cache = host_cache
         @query_cache = query_cache
+        @level = 0
+      end
+
+      def puts(string)
+        print "    " * @level
+        super
       end
 
       def find_answer(name, type)
 
         while true
+          puts ""
           puts "Trying to find #{type.inspect} #{name.inspect}"
 
           closest = @zone_cache.find_closest_zone(name)
@@ -146,6 +153,7 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
           end
 
           puts "Not a referral"
+          puts "Got answer: #{answer.inspect}"
           return answer
         end
 
