@@ -2,9 +2,10 @@ module DNSChecker
 
   class ResolvCache
 
-    attr_accessor :store
+    attr_accessor :fetcher, :store
 
-    def initialize(store)
+    def initialize(fetcher, store)
+      @fetcher = fetcher
       @store = store
     end
 
@@ -18,7 +19,7 @@ module DNSChecker
       end
 
       nameservers.shuffle.each do |ns|
-        if answer = get_answer_lookup(ns, zone, type)
+        if answer = @fetcher.get_answer_lookup(ns, zone, type)
           write_cache(ns, zone, type, answer)
           puts "(fetched)"
           return answer
@@ -30,15 +31,6 @@ module DNSChecker
     end
 
     private
-
-    def get_answer_lookup(ns, zone, type)
-      answer, name = nil
-      Resolv::DNS.new(:nameserver => [ns]).fetch_resource(zone, type) {|*args| answer, name = args}
-      if name and name != Resolv::DNS::Name.create(zone)
-        raise "wut, asked for #{zone.inspect} got #{name.inspect}"
-      end
-      answer
-    end
 
     def read_cache(ns, zone, type, now = nil)
       data = @store.get(cache_key(ns, zone, type))

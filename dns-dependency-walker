@@ -8,18 +8,11 @@ zone = ARGV.first
 zone = zone + "." unless zone.end_with? "."
 name = Resolv::DNS::Name.create(zone)
 
-s = Resolv::DNS.new()
-
-#s.each_resource(zone, Resolv::DNS::Resource::IN::NS) do |r|
-#  p r
-#  p r.name
-#  p r.name.to_s
-#end
-
 in_zone = Resolv::DNS::Name.create(".")
 servers = DNSChecker::RootServers::SERVER_IPV4
 
 cache = DNSChecker::ResolvCache.new(
+  DNSChecker::ResolvCacheFetcher.new,
   DNSChecker::ResolvCacheStore.new("var/cache")
 )
 
