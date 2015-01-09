@@ -143,11 +143,12 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
           puts "Zone #{closest_zone.inspect} nameservers resolve to #{nameserver_addresses.inspect}"
 
           answer = @query_cache.get_answer(nameserver_addresses, name, type)
-          puts "Got answer"
+          puts "Got answer #{answer.inspect}"
 
-          next_zone, next_nameservers = find_referral(answer, closest_zone, name)
+          next_zone, next_nameservers, additional_hosts = find_referral(answer, closest_zone, name)
           if next_zone
-            puts "Is referral to zone #{next_zone.inspect} using nameservers #{next_nameservers.inspect}"
+            puts "Is referral to zone #{next_zone.inspect} using nameservers #{next_nameservers.inspect} and glue #{additional_hosts.inspect}"
+            seed_additional_hosts(additional_hosts)
             @zone_cache.add_zone(next_zone, Set.new(next_nameservers))
             next
           end
@@ -163,10 +164,29 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
         addresses = @host_cache.get(name)
         return addresses if addresses
 
-        # TODO replace by a re-entrant lookup
-        # In any case, this just finds a single IPv4 - no support for >1
-        # address, nor IPv6
-        addresses = [ Resolv.getaddress(name.to_s) ]
+        puts "Resolving #{name} to A"
+        a_answers = begin
+                      @level = @level + 1
+                      self.find_answer(name, Resolv::DNS::Resource::IN::A).answer
+                    rescue
+                      @level = @level - 1
+                    end
+
+        puts "Resolving #{name} to AAAA"
+        aaaa_answers = begin
+                      @level = @level + 1
+                      self.find_answer(name, Resolv::DNS::Resource::IN::AAAA).answer
+                    rescue
+                      @level = @level - 1
+                    end
+
+        puts "#{name.inspect} A -> #{a_answers}"
+        puts "#{name.inspect} AAAA -> #{aaaa_answers}"
+
+        addresses = Set.new(
+          (a_answers + aaaa_answers).map {|name,ttl,rr| rr.address.to_s}
+        )
+        puts "addresses = #{addresses.inspect}"
 
         @host_cache.put(name, addresses)
         addresses
@@ -187,10 +207,27 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
         end
         next_zone = next_zone.first
 
+        glue = answer.additional.select do |add_name, ttl, rr|
+          ( rr.kind_of? Resolv::DNS::Resource::IN::A or rr.kind_of? Resolv::DNS::Resource::IN::AAAA ) \
+            and add_name.subdomain_of?(in_zone)
+        end
+
         next_server_names = valid_authorities.map {|auth| auth[2].name}
         puts "#{in_zone.inspect} delegates to #{next_zone.inspect} via #{next_server_names.inspect}"
 
-        [ next_zone, next_server_names ]
+        [ next_zone, next_server_names, glue ]
+      end
+
+      def seed_additional_hosts(glue)
+        h = {}
+        glue.each do |add_name, ttl, rr|
+          (h[add_name] ||= Set.new) << rr.address.to_s.downcase
+        end
+
+        h.each do |name, addresses|
+          puts "Seeding glue #{name.inspect} = #{addresses.inspect}"
+          @host_cache.put(name, addresses)
+        end
       end
 
     end
