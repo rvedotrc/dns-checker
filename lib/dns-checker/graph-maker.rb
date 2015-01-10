@@ -39,16 +39,6 @@ module DNSChecker
           (zone_has_ipv6(zone) ? "" : "fillcolor=grey style=filled"),
         ]
 
-        if @options[:show_nameservers]
-          nameservers.each do |ns|
-            # Zone served by nameserver
-            dot << ' %s -> %s [ color=red ]' % [
-              zone_node_id(zone),
-              ns_node_id(ns),
-            ]
-          end
-        end
-
         unless zone.root?
           parent_zone = @zone_cache.find_closest_zone(zone.parent)[:zone]
           # Zone delegated by zone
@@ -75,6 +65,16 @@ module DNSChecker
           ns_node_id(ns),
           zone_node_id(ns_in_zone),
         ]
+      end
+
+      @zone_cache.cache.each do |zone, nameservers|
+        nameservers.each do |ns|
+          # Zone served by nameserver
+          dot << ' %s -> %s [ color=red ]' % [
+            zone_node_id(zone),
+            ns_node_id(ns),
+          ]
+        end
       end
     end
 
