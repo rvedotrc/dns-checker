@@ -64,7 +64,7 @@ module DNSChecker
             key = [ zone, ns_in_zone ]
             if !done[key]
               # Zone has nameserver(s) in zone
-              puts ' %s -> %s [ color=orange constraint=false ]' % [
+              puts ' %s -> %s [ color=orange ]' % [
                 zone_node_id(zone),
                 zone_node_id(ns_in_zone),
               ]
