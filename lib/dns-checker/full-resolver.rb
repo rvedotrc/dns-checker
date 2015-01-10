@@ -158,6 +158,11 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
             puts "Is referral to zone #{next_zone.inspect} using nameservers #{next_nameservers.inspect} and glue #{additional_hosts.inspect}"
             seed_additional_hosts(additional_hosts)
             @zone_cache.add_zone(next_zone, Set.new(next_nameservers))
+
+            # Detect intermediate zones? (e.g. uk. -> rve.org.uk., but org.uk.
+            # exists too.  Not normally shown because .uk+.org.uk. share
+            # nameservers).
+
             next
           end
 
@@ -258,9 +263,19 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
           (h[add_name] ||= Set.new) << rr.address.to_s.downcase
         end
 
+        new_hosts = Set.new
+
         h.each do |name, addresses|
           puts "Seeding glue #{name.inspect} = #{addresses.inspect}"
+          if !@host_cache.get(name)
+            new_hosts << name
+          end
           @host_cache.put(name, addresses)
+        end
+
+        # Force a lookup of each new name, so we know what zone they're in
+        new_hosts.each do |hostname|
+          find_answer(hostname, Resolv::DNS::Resource::IN::A)
         end
       end
 
