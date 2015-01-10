@@ -12,6 +12,9 @@ opts_parser = OptionParser.new do |opts|
   opts.on("--show-ipv6-errors", "Highlight zones that aren't accessible to IPv6-only clients") do |v|
     options[:show_ipv6] = true
   end
+  opts.on("--show-nameservers", "Show nameservers") do |v|
+    options[:show_nameservers] = true
+  end
 end
 
 opts_parser.parse!

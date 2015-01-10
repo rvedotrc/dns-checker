@@ -6,7 +6,6 @@ module DNSChecker
   class GraphMaker
 
     def initialize(zone_cache, host_cache, options = {})
-      @show_each_ns = true
       @zone_cache = zone_cache
       @host_cache = host_cache
       @options = options
@@ -23,7 +22,7 @@ module DNSChecker
           (zone_has_ipv6(zone) ? "" : "fillcolor=grey style=filled"),
         ]
 
-        if @show_each_ns
+        if @options[:show_nameservers]
           nameservers.each do |ns|
             # Zone served by nameserver
             puts ' %s -> %s [ color=red ]' % [
@@ -44,7 +43,7 @@ module DNSChecker
 
       end
 
-      if @show_each_ns
+      if @options[:show_nameservers]
         @zone_cache.cache.values.map(&:to_a).flatten.uniq.each do |ns|
           # Nameserver node
           puts ' %s [ label="%s" shape=ellipse %s ]' % [
