@@ -90,15 +90,36 @@ module DNSChecker
       "ns_" + ns.to_s.gsub("-", "__").gsub(".", "_")
     end
 
-    def host_has_ipv6(host)
-      return true unless @options[:show_ipv6]
+    def host_passes_reachability(host)
+      return false if @options[:show_ipv4] and !host_has_ipv4(host)
+      return false if @options[:show_ipv6] and !host_has_ipv6(host)
+      true
+    end
 
+    def zone_passes_reachability(zone)
+      return false if @options[:show_ipv4] and !zone_has_ipv4(zone)
+      return false if @options[:show_ipv6] and !zone_has_ipv6(zone)
+      true
+    end
+
+    def host_has_ipv4(host)
+      @host_cache.get(host).any? {|addr| addr.match /\./} # Eww
+    end
+
+    def host_has_ipv6(host)
       @host_cache.get(host).any? {|addr| addr.match /:/} # Eww
     end
 
-    def zone_has_ipv6(zone)
-      return true unless @options[:show_ipv6]
+    def zone_has_ipv4(zone)
+      return false if @zone_cache.cache[zone].none? {|ns| host_has_ipv4(ns)}
 
+      return true if zone.root?
+
+      parent = @zone_cache.find_closest_zone(zone.parent)[:zone]
+      return zone_has_ipv4(parent)
+    end
+
+    def zone_has_ipv6(zone)
       return false if @zone_cache.cache[zone].none? {|ns| host_has_ipv6(ns)}
 
       return true if zone.root?

@@ -21,13 +21,16 @@ When performing lookups, the script chooses a nameserver at random.
 If it chooses an IPv6 server and your host doesn't have an IPv6 Internet
 connection, the lookup will fail.
 
-Doesn't deal well with errors, including SERVFAIL, lame (non-authoritative) servers,
-or zones incorrectly set up to depend on each other's nameservers.
+Doesn't deal well with errors, including CNAME nameservers, SERVFAIL, lame
+(non-authoritative) servers, or zones incorrectly set up to depend on each
+other's nameservers.
 
 Doesn't understand IDN at all.
 
 Use
 ---
+
+Just run `./dns-dependency-walker --help` for help.
 
 `mkdir -p var/cache`
 `./do [options] ZONE`
@@ -51,7 +54,6 @@ In no particular order,
  * Avoid using IPv6 hosts if we don't have IPv6 (see "Limitations")
  * Deal with errors (see "Limitations")
  * Query all nameservers (that we can) for each zone, looking for inconsistencies 
- * Add --show-ipv4-errors for symmetry (and *eventually* will be useful)
  * Tests, cruft removal, etc.
 
 Pull requests welcome.

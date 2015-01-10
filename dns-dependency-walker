@@ -12,12 +12,25 @@ opts_parser = OptionParser.new do |opts|
   opts.on("--show-ipv6-errors", "Highlight zones that aren't accessible to IPv6-only clients") do |v|
     options[:show_ipv6] = true
   end
+  opts.on("--show-ipv4-errors", "Highlight zones that aren't accessible to IPv4-only clients") do |v|
+    options[:show_ipv4] = true
+  end
   opts.on("--show-nameservers", "Show nameservers") do |v|
     options[:show_nameservers] = true
   end
+  opts.on("--help", "Show this help") do
+    options[:help] = true
+  end
+  opts.separator ""
+  opts.separator "ZONE can be used either with or without the trailing dot."
 end
 
 opts_parser.parse!
+
+if options[:help]
+  $stdout.puts opts_parser.help
+  exit
+end
 
 if ARGV.size != 1
   $stderr.puts opts_parser.help
