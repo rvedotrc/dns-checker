@@ -19,7 +19,7 @@ Limitations
 
 When performing lookups, the script chooses a nameserver at random.
 If it chooses an IPv6 server and your host doesn't have an IPv6 Internet
-connection, the lookup will fail.
+connection, the lookup will fail. (And the same for IPv4).
 
 Doesn't deal well with errors, including CNAME nameservers, SERVFAIL, lame
 (non-authoritative) servers, or zones incorrectly set up to depend on each
@@ -33,6 +33,7 @@ Use
 Just run `./dns-dependency-walker --help` for help.
 
 `mkdir -p var/cache`
+
 `./do [options] ZONE`
 
 e.g.
@@ -52,6 +53,7 @@ In no particular order,
 
  * Option to group together multiple nameservers into a single node, to make the diagram more manageable
  * Avoid using IPv6 hosts if we don't have IPv6 (see "Limitations")
+ * Avoid using IPv4 hosts if we don't have IPv4 (see "Limitations")
  * Deal with errors (see "Limitations")
  * Query all nameservers (that we can) for each zone, looking for inconsistencies 
  * Tests, cruft removal, etc.
