@@ -35,7 +35,10 @@ Use
 e.g.
 
 `./do org`
+
 `./do --show-ipv6-errors facebook.com`
+
 `./do --show-ipv6-errors gov.uk`
+
 `./do --show-nameservers --show-ipv6-errors wikipedia.org`
 
