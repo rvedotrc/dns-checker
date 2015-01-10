@@ -51,31 +51,74 @@ module DNSChecker
     end
 
     def render_nameservers
+      nameserver_groups = {}
+
       @zone_cache.cache.values.map(&:to_a).flatten.uniq.each do |ns|
-        # Nameserver node
-        dot << ' %s [ label="%s" shape=ellipse %s ]' % [
-          ns_node_id(ns),
-          ns.to_s,
-          (host_reachable(ns) ? "" : "fillcolor=grey style=filled"),
-        ]
+        # Properties of the node
+        name = ns
+        reachable = host_reachable(ns)
+        ns_in_zone = zone_cache.find_closest_zone(ns)[:zone]
 
-        # Nameserver within zone
-        ns_in_zone = @zone_cache.find_closest_zone(ns)[:zone]
-        dot << ' %s -> %s [ color=orange ]' % [
-          ns_node_id(ns),
-          zone_node_id(ns_in_zone),
-        ]
+        serves_zones = zone_cache.cache.entries \
+          .select {|zone, nameservers| nameservers.include? ns} \
+          .map {|zone, nameservers| zone} \
+          .sort_by(&:to_s)
+
+        key = { reachable: reachable, ns_in_zone: ns_in_zone, serves_zones: serves_zones }
+        (nameserver_groups[key] ||= []) << ns
       end
 
-      @zone_cache.cache.each do |zone, nameservers|
-        nameservers.each do |ns|
-          # Zone served by nameserver
-          dot << ' %s -> %s [ color=red ]' % [
-            zone_node_id(zone),
-            ns_node_id(ns),
+      puts "nameserver_groups = #{nameserver_groups.inspect}"
+
+      nameserver_groups.each do |key, nameservers|
+        puts "Nameservers with properties #{key.inspect}"
+        puts "  #{nameservers.inspect}"
+
+        nodes = if options[:group_nameservers]
+          [
+            key.merge(
+              node_id: Time.now.strftime("%s%6N"), # fixme
+              label: nameservers.map(&:to_s).sort.join("\\n"),
+            )
           ]
+        else
+          nameservers.map do |ns|
+            key.merge(
+              node_id: ns_node_id(ns),
+              label: ns.to_s,
+            )
+          end
         end
+
+        puts "  nodes=#{nodes.inspect}"
+        puts ""
+
+        nodes.each do |node|
+          # Nameserver node
+          dot << ' %s [ label="%s" shape=ellipse %s ]' % [
+            node[:node_id],
+            node[:label],
+            (node[:reachable] ? "" : "fillcolor=grey style=filled"),
+          ]
+
+          # Nameserver within zone
+          dot << ' %s -> %s [ color=orange ]' % [
+            node[:node_id],
+            zone_node_id(node[:ns_in_zone]),
+          ]
+
+          node[:serves_zones].each do |zone|
+            # Zone served by nameserver
+            dot << ' %s -> %s [ color=red ]' % [
+              zone_node_id(zone),
+              node[:node_id],
+            ]
+          end
+
+        end
+
       end
+
     end
 
     def render_zone_ns_dependencies

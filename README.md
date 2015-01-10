@@ -44,14 +44,13 @@ e.g.
 
 `./do --show-ipv6-errors gov.uk`
 
-`./do --show-nameservers --show-ipv6-errors wikipedia.org`
+`./do --show-nameservers --group-nameservers --show-ipv6-errors wikipedia.org`
 
 Possible future additions
 -------------------------
 
 In no particular order,
 
- * Option to group together multiple nameservers into a single node, to make the diagram more manageable
  * Avoid using IPv6 hosts if we don't have IPv6 (see "Limitations")
  * Avoid using IPv4 hosts if we don't have IPv4 (see "Limitations")
  * Deal with errors (see "Limitations")

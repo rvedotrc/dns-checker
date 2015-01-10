@@ -18,6 +18,9 @@ opts_parser = OptionParser.new do |opts|
   opts.on("--show-nameservers", "Show nameservers") do |v|
     options[:show_nameservers] = true
   end
+  opts.on("--group-nameservers", "Group similar nameservers together") do |v|
+    options[:group_nameservers] = true
+  end
   opts.on("--help", "Show this help") do
     options[:help] = true
   end
