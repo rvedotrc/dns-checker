@@ -6,7 +6,7 @@ module DNSChecker
   class GraphMaker
 
     def initialize
-      @show_each_ns = false
+      @show_each_ns = true
     end
 
     def dot(zone_cache)
@@ -37,10 +37,10 @@ module DNSChecker
 
         unless zone.root?
           parent_zone = zone_cache.find_closest_zone(zone.parent)[:zone]
-          # Zone delegates to zone
+          # Zone delegated by zone
           puts ' %s -> %s [ color=purple ]' % [
-            zone_node_id(parent_zone),
             zone_node_id(zone),
+            zone_node_id(parent_zone),
           ]
         end
 
@@ -65,8 +65,8 @@ module DNSChecker
             if !done[key]
               # Zone has nameserver(s) in zone
               puts ' %s -> %s [ color=orange constraint=false ]' % [
-                zone_node_id(ns_in_zone),
                 zone_node_id(zone),
+                zone_node_id(ns_in_zone),
               ]
               done[key] = true
             end
