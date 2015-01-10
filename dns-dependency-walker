@@ -60,5 +60,5 @@ puts ""
 p ans
 puts ""
 
-STDOUT.reopen(File.open('zone.dot', 'w'))
-DNSChecker::GraphMaker.new(full_resolver.zone_cache, full_resolver.host_cache, options).render_dot()
+dot = DNSChecker::GraphMaker.new(full_resolver.zone_cache, full_resolver.host_cache, options).render_dot()
+IO.write('zone.dot', dot)
