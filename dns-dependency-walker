@@ -49,8 +49,8 @@ cache = DNSChecker::ResolvCache.new(
 # DNSChecker::ZoneWalker.new(cache, servers).walk(zone)
 
 full_resolver = DNSChecker::FullResolver::Resolver.new(
-  DNSChecker::FullResolver::ZoneCache.new,
-  DNSChecker::FullResolver::HostCache.new,
+  DNSChecker::ZoneCache.new,
+  DNSChecker::HostCache.new,
   cache
 )
 

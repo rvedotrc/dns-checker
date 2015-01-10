@@ -79,27 +79,3 @@ module DNSChecker
   end
 
 end
-
-class Resolv
-  class DNS
-    class Name
-      def same_or_subdomain_of?(other)
-        subdomain_of?(other) or self == other
-      end
-      def ancestor_of?(other)
-        other.subdomain_of? self
-      end
-      def same_or_ancestor_of?(other)
-        ancestor_of?(other) or self == other
-      end
-
-      def inspect
-        "#<#{self.class}: #{self.to_s}>"
-      end
-      def to_s
-        to_a.join(".") + (absolute? ? "." : "")
-      end
-    end
-  end
-end
-
