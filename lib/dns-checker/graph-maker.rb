@@ -19,7 +19,7 @@ module DNSChecker
 
       render_zones
 
-      if @options[:show_nameservers]
+      if options[:show_nameservers]
         render_nameservers
       else
         render_zone_ns_dependencies
@@ -36,7 +36,7 @@ module DNSChecker
         dot << ' %s [ label="%s" shape=rect %s ]' % [
           zone_node_id(zone),
           zone.to_s,
-          (zone_has_ipv6(zone) ? "" : "fillcolor=grey style=filled"),
+          (zone_reachable(zone) ? "" : "fillcolor=grey style=filled"),
         ]
 
         unless zone.root?
@@ -56,7 +56,7 @@ module DNSChecker
         dot << ' %s [ label="%s" shape=ellipse %s ]' % [
           ns_node_id(ns),
           ns.to_s,
-          (host_has_ipv6(ns) ? "" : "fillcolor=grey style=filled"),
+          (host_reachable(ns) ? "" : "fillcolor=grey style=filled"),
         ]
 
         # Nameserver within zone
@@ -106,42 +106,19 @@ module DNSChecker
       "ns_" + ns.to_s.gsub("-", "__").gsub(".", "_")
     end
 
-    def host_passes_reachability(host)
-      return false if @options[:show_ipv4] and !host_has_ipv4(host)
-      return false if @options[:show_ipv6] and !host_has_ipv6(host)
+    def host_reachable(host)
+      return false if options[:show_ipv4] and host_cache.get(host).none? {|addr| addr.match /\./} # Eww
+      return false if options[:show_ipv6] and host_cache.get(host).none? {|addr| addr.match /\:/} # Eww
       true
     end
 
-    def zone_passes_reachability(zone)
-      return false if @options[:show_ipv4] and !zone_has_ipv4(zone)
-      return false if @options[:show_ipv6] and !zone_has_ipv6(zone)
-      true
-    end
-
-    def host_has_ipv4(host)
-      @host_cache.get(host).any? {|addr| addr.match /\./} # Eww
-    end
-
-    def host_has_ipv6(host)
-      @host_cache.get(host).any? {|addr| addr.match /:/} # Eww
-    end
-
-    def zone_has_ipv4(zone)
-      return false if @zone_cache.cache[zone].none? {|ns| host_has_ipv4(ns)}
+    def zone_reachable(zone)
+      return false if zone_cache.cache[zone].none? {|ns| host_reachable(ns)}
 
       return true if zone.root?
 
-      parent = @zone_cache.find_closest_zone(zone.parent)[:zone]
-      return zone_has_ipv4(parent)
-    end
-
-    def zone_has_ipv6(zone)
-      return false if @zone_cache.cache[zone].none? {|ns| host_has_ipv6(ns)}
-
-      return true if zone.root?
-
-      parent = @zone_cache.find_closest_zone(zone.parent)[:zone]
-      return zone_has_ipv6(parent)
+      parent = zone_cache.find_closest_zone(zone.parent)[:zone]
+      return zone_reachable(parent)
     end
 
     def log(*s)
