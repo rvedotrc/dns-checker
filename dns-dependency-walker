@@ -3,6 +3,24 @@
 $: << "lib"
 require 'dns-checker'
 
+options = {
+}
+
+require 'optparse'
+opts_parser = OptionParser.new do |opts|
+  opts.banner = "Usage: dns-dependency-walker [options] ZONE"
+  opts.on("--show-ipv6-errors", "Highlight zones that aren't accessible to IPv6-only clients") do |v|
+    options[:show_ipv6] = true
+  end
+end
+
+opts_parser.parse!
+
+if ARGV.size != 1
+  $stderr.puts opts_parser.help
+  exit 1
+end
+
 zone = ARGV.first
 zone = zone + "." unless zone.end_with? "."
 
@@ -27,4 +45,4 @@ p ans
 puts ""
 
 STDOUT.reopen(File.open('zone.dot', 'w'))
-DNSChecker::GraphMaker.new(full_resolver.zone_cache, full_resolver.host_cache).render_dot()
+DNSChecker::GraphMaker.new(full_resolver.zone_cache, full_resolver.host_cache, options).render_dot()

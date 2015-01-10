@@ -5,10 +5,11 @@ module DNSChecker
   
   class GraphMaker
 
-    def initialize(zone_cache, host_cache)
+    def initialize(zone_cache, host_cache, options = {})
       @show_each_ns = true
       @zone_cache = zone_cache
       @host_cache = host_cache
+      @options = options
     end
 
     def render_dot
@@ -91,10 +92,14 @@ module DNSChecker
     end
 
     def host_has_ipv6(host)
+      return true unless @options[:show_ipv6]
+
       @host_cache.get(host).any? {|addr| addr.match /:/} # Eww
     end
 
     def zone_has_ipv6(zone)
+      return true unless @options[:show_ipv6]
+
       return false if @zone_cache.cache[zone].none? {|ns| host_has_ipv6(ns)}
 
       return true if zone.root?
