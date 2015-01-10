@@ -27,4 +27,4 @@ p ans
 puts ""
 
 STDOUT.reopen(File.open('zone.dot', 'w'))
-DNSChecker::GraphMaker.new.dot(full_resolver.zone_cache)
+DNSChecker::GraphMaker.new(full_resolver.zone_cache, full_resolver.host_cache).render_dot()
