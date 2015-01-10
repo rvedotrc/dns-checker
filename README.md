@@ -42,3 +42,17 @@ e.g.
 
 `./do --show-nameservers --show-ipv6-errors wikipedia.org`
 
+Possible future additions
+-------------------------
+
+In no particular order,
+
+ * Option to group together multiple nameservers into a single node, to make the diagram more manageable
+ * Avoid using IPv6 hosts if we don't have IPv6 (see "Limitations")
+ * Deal with errors (see "Limitations")
+ * Query all nameservers (that we can) for each zone, looking for inconsistencies 
+ * Add --show-ipv4-errors for symmetry (and *eventually* will be useful)
+ * Tests, cruft removal, etc.
+
+Pull requests welcome.
+
