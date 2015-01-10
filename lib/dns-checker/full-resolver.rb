@@ -109,7 +109,8 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
       end
 
       def put(hostname, addrs)
-        @cache[hostname.downcase] = addrs.map &:downcase
+        (@cache[hostname.downcase] ||= []).concat addrs.map &:downcase
+        @cache[hostname.downcase].uniq!
       end
 
     end

@@ -107,6 +107,7 @@ module DNSChecker
     end
 
     def host_reachable(host)
+      log "Is #{host.inspect} reachable? #{host_cache.get(host).inspect}"
       return false if options[:show_ipv4] and host_cache.get(host).none? {|addr| addr.match /\./} # Eww
       return false if options[:show_ipv6] and host_cache.get(host).none? {|addr| addr.match /\:/} # Eww
       true
@@ -122,7 +123,7 @@ module DNSChecker
     end
 
     def log(*s)
-      $stderr.puts *s
+      puts *s
     end
 
   end
