@@ -59,7 +59,7 @@ module DNSChecker
 
       nameservers.kind_of? Set or raise
       puts "Adding #{zone} to zone cache"
-      @cache[zone] = Set.new nameservers
+      @cache[zone] = Set.new(nameservers.to_a.map {|s| Resolv::DNS::Name.create(s.to_s.downcase)})
     end
 
   end
