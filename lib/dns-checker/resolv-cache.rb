@@ -19,10 +19,14 @@ module DNSChecker
       end
 
       nameservers.shuffle.each do |ns|
-        if answer = @fetcher.get_answer_lookup(ns, zone, type)
-          write_cache(ns, zone, type, answer)
-          puts "(fetched)"
-          return answer
+        begin
+          if answer = @fetcher.get_answer_lookup(ns, zone, type)
+            write_cache(ns, zone, type, answer)
+            puts "(fetched)"
+            return answer
+          end
+        rescue Errno::ENETUNREACH, Errno::EHOSTUNREACH => e
+          puts "(got error #{e} while querying #{ns} - skipping this server)"
         end
       end
 
