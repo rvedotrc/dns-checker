@@ -20,7 +20,6 @@ describe DNSChecker::ZoneCache do
   end
 
   it "should start off with just the root zone" do
-    @zone_cache = DNSChecker::ZoneCache.new
     expect(@zone_cache.cache.keys.count).to eq(1)
     expect(@zone_cache.cache.keys).to eq([ @root ])
   end
@@ -67,6 +66,7 @@ describe DNSChecker::ZoneCache do
   end
 
   # TODO should expect Set
+  # TODO should force nameservers to lower case
   # TODO should replace previous nameservers (or should we just fail if
   # already present?)
 

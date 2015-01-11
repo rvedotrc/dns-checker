@@ -27,6 +27,8 @@ M.ROOT-SERVERS.NET.      3600000      A     202.12.27.33
 M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
     EOF
 
+    attr_reader :cache
+
     def initialize
       @cache = {}
 
