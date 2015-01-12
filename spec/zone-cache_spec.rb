@@ -16,7 +16,9 @@ describe DNSChecker::ZoneCache do
   end
 
   def expect_zone(look_for, expect_find)
-    expect(@zone_cache.find_closest_zone(name(look_for))[:zone]).to eq(name(expect_find))
+    actual = @zone_cache.find_closest_zone(name(look_for))[:zone]
+    expected = name(expect_find)
+    expect(actual).to eq(expected)
   end
 
   it "should start off with just the root zone" do
@@ -59,10 +61,13 @@ describe DNSChecker::ZoneCache do
     @zone_cache.add_zone(name("EXAMPLE.com."), names(%w[ ex1 ex2 ]))
 
     expect_zone "com.", "com."
+    expect_zone "COM.", "com."
+    expect_zone "com.", "COM."
+    expect_zone "COM.", "COM."
     expect_zone "example.com.", "example.com."
-    expect_zone "EXAMPLE.COM.", "EXAMPLE.com."
-    expect_zone "example.COM.", "EXAMPLE.com."
     expect_zone "EXAMPLE.com.", "example.com."
+    expect_zone "example.com.", "EXAMPLE.com."
+    expect_zone "EXAMPLE.com.", "EXAMPLE.com."
   end
 
   # TODO should expect Set

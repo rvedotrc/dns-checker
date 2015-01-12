@@ -28,6 +28,16 @@ class Resolv
         to_a.join(".") + (absolute? ? "." : "")
       end
 
+      # Override broken == method
+      # 2.1.1 :001 > Resolv::DNS::Name.create("abc.def.") == Resolv::DNS::Name.create("ab.cd.ef.")
+      # => true
+      # 2.1.1 :002 > Resolv::DNS::Name.create("abc.def.") == Resolv::DNS::Name.create("ABC.def.")
+      # => false
+      def ==(other) # :nodoc:
+        return false unless Name === other
+        return @labels == other.to_a && @absolute == other.absolute?
+      end
+
       def downcase
         self
       end
