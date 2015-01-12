@@ -17,10 +17,6 @@ Requirements
 Limitations
 -----------
 
-When performing lookups, the script chooses a nameserver at random.
-If it chooses an IPv6 server and your host doesn't have an IPv6 Internet
-connection, the lookup will fail. (And the same for IPv4).
-
 Doesn't deal well with errors, including CNAME nameservers, SERVFAIL, lame
 (non-authoritative) servers, or zones incorrectly set up to depend on each
 other's nameservers.
@@ -51,8 +47,8 @@ Possible future additions
 
 In no particular order,
 
- * Avoid using IPv6 hosts if we don't have IPv6 (see "Limitations")
- * Avoid using IPv4 hosts if we don't have IPv4 (see "Limitations")
+ * Reject (or highlight as error) nameservers on private or otherwise
+   non-global IP addresses (e.g. RFC1918)
  * Deal with errors (see "Limitations")
  * Query all nameservers (that we can) for each zone, looking for inconsistencies 
  * Tests, cruft removal, etc.
