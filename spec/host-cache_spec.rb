@@ -46,4 +46,10 @@ describe DNSChecker::HostCache do
     expect(@host_cache.get(name("lower.case.")).sort).to eq(%w[ 1.2.3.4 88.77.66.55 33.22.11.0 ].sort)
   end
 
+  it "should force addresses to lower case" do
+    @host_cache.put(name("host.name."), %w[ 2001::d 2001::e ])
+    @host_cache.put(name("host.name."), %w[ 2001::E 2001::F ])
+    expect(@host_cache.get(name("host.name.")).sort).to eq(%w[ 2001::d 2001::e 2001::f ].sort)
+  end
+
 end

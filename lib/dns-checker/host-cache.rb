@@ -43,7 +43,7 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
     end
 
     def put(hostname, addrs)
-      (@cache[hostname] ||= []).concat addrs.to_a
+      (@cache[hostname] ||= []).concat addrs.to_a.map &:downcase
       @cache[hostname].uniq!
     end
 
