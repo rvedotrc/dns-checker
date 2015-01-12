@@ -63,9 +63,14 @@ module DNSChecker
             seed_additional_hosts(additional_hosts)
             @zone_cache.add_zone(next_zone, Set.new(next_nameservers))
 
-            # Detect intermediate zones? (e.g. uk. -> rve.org.uk., but org.uk.
-            # exists too.  Not normally shown because .uk+.org.uk. share
-            # nameservers).
+            # TODO Detect intermediate zones?
+            # For example if you ask the "uk." zone about "example.co.uk.",
+            # you'll get a referral to another zone, skipping over "co.uk.".
+            # However, even though you don't see the referral (because the
+            # nameservers for "uk." are also authoritative for "co.uk."), the
+            # "co.uk." zone still exists as a zone on its own (it has its own
+            # SOA).  We could detect such cases by querying for the SOA
+            # separately.
 
             next
           end
