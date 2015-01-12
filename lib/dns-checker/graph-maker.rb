@@ -35,7 +35,7 @@ module DNSChecker
         # A node for the zone
         dot << ' %s [ label="%s" shape=rect %s ]' % [
           zone_node_id(zone),
-          zone.to_s,
+          zone.to_s_normalised,
           (zone_reachable(zone) ? "" : "fillcolor=grey style=filled"),
         ]
 
@@ -78,14 +78,14 @@ module DNSChecker
           [
             key.merge(
               node_id: Time.now.strftime("%s%6N"), # fixme
-              label: nameservers.map(&:to_s).sort.join("\\n"),
+              label: nameservers.map(&:to_s_normalised).sort.join("\\n"),
             )
           ]
         else
           nameservers.map do |ns|
             key.merge(
               node_id: ns_node_id(ns),
-              label: ns.to_s,
+              label: ns.to_s_normalised,
             )
           end
         end

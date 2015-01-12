@@ -11,6 +11,7 @@ require_relative 'dns-checker/graph-maker'
 class Resolv
   class DNS
     class Name
+
       def same_or_subdomain_of?(other)
         subdomain_of?(other) or self == other
       end
@@ -21,14 +22,22 @@ class Resolv
         ancestor_of?(other) or self == other
       end
 
-      def inspect
-        "#<#{self.class}: #{self.to_s}>"
+      # We could meaningfully define aliases here:
+      #     <   subdomain_of?
+      #     >   ancestor_of?
+      #     <=  same_or_subdomain_of?
+      #     >=  same_or_ancestor_of?
+
+      def to_s_normalised
+        to_s.downcase + (absolute? ? "." : "")
       end
-      def to_s
-        to_a.join(".") + (absolute? ? "." : "")
+
+      def normalise
+        self.class.create(to_s_normalised)
       end
 
       # Override broken == method
+      # (already fixed upstream in ec7f1f5dc23b331e09340e0431b17eb5307aeddb, 2015-01-02)
       # 2.1.1 :001 > Resolv::DNS::Name.create("abc.def.") == Resolv::DNS::Name.create("ab.cd.ef.")
       # => true
       # 2.1.1 :002 > Resolv::DNS::Name.create("abc.def.") == Resolv::DNS::Name.create("ABC.def.")
@@ -47,6 +56,7 @@ class Resolv
         return nil if root?
         Resolv::DNS::Name.create(to_a[1..-1].join(".")+".")
       end
+
     end
   end
 end

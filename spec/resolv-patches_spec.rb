@@ -63,6 +63,20 @@ describe Resolv::DNS::Name do
     expect(name("another.net.").same_or_ancestor_of? name("EXAMPLE.com.")).to be_falsy
   end
 
-  # Untested but currently patched: inspect, to_s
+  # to_s doesn't add the trailing dot on absolute names
+  it "should support to_s_normalised" do
+    expect(name("EXAMPLE.COM.").to_s_normalised).to eq("example.com.")
+    expect(name("EXAMPLE.COM").to_s_normalised).to eq("example.com")
+    expect(name("COM.").to_s_normalised).to eq("com.")
+    expect(name("COM").to_s_normalised).to eq("com")
+    expect(name(".").to_s_normalised).to eq(".")
+  end
+
+  it "should support normalise" do
+    expect(name("EXAMPLE.COM.").normalise).to eq(name("example.com."))
+    expect(name("EXAMPLE.COM.").normalise.to_s).to eq("example.com")
+    expect(name("EXAMPLE.COM").normalise).to eq(name("example.com"))
+    expect(name("EXAMPLE.COM").normalise.to_s).to eq("example.com")
+  end
 
 end
