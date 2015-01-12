@@ -39,20 +39,10 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:DC3::35
     end
 
     def get(hostname)
-      # FIXME shouldn't be necessary because Resolv::DNS::Name appears to
-      # /try/ to be case-insensitive, case-preserving.  But, doesn't seem to
-      # work.
-      hostname = Resolv::DNS::Name.create(hostname.to_s.downcase + ".")
-
       @cache[hostname]
     end
 
     def put(hostname, addrs)
-      # FIXME shouldn't be necessary because Resolv::DNS::Name appears to
-      # /try/ to be case-insensitive, case-preserving.  But, doesn't seem to
-      # work.
-      hostname = Resolv::DNS::Name.create(hostname.to_s.downcase + ".")
-
       (@cache[hostname] ||= []).concat addrs.to_a
       @cache[hostname].uniq!
     end

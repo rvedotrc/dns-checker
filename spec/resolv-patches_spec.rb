@@ -8,10 +8,14 @@ describe Resolv::DNS::Name do
 
   it "should compare case-insensitively" do
     expect(name("example.com.")).to eq(name("EXAMPLE.com."))
+    expect(name("example.com.") == name("EXAMPLE.com.")).to be_truthy
+    expect(name("example.com.").eql? name("EXAMPLE.com.")).to be_truthy
   end
 
   it "should not throw away dots when comparing" do
     expect(name("example.com.")).not_to eq(name("ex.am.ple.com."))
+    expect(name("example.com.") == name("ex.am.ple.com.")).to be_falsy
+    expect(name("example.com.").eql? name("ex.am.ple.com.")).to be_falsy
   end
 
   it "should compare absoluteness when comparing" do

@@ -36,10 +36,9 @@ module DNSChecker
       # FIXME shouldn't be necessary because Resolv::DNS::Name appears to
       # /try/ to be case-insensitive, case-preserving.  But, doesn't seem to
       # work.
-      zone = zone.normalise
+      # zone = zone.normalise
 
       while true
-        puts "Looking in zone cache for #{zone}"
         answer = @cache[zone]
         if answer
           return { zone: zone, nameservers: answer }
@@ -55,10 +54,9 @@ module DNSChecker
       # FIXME shouldn't be necessary because Resolv::DNS::Name appears to
       # /try/ to be case-insensitive, case-preserving.  But, doesn't seem to
       # work.
-      zone = zone.normalise
+      # zone = zone.normalise
 
       nameservers.kind_of? Set or raise
-      puts "Adding #{zone} to zone cache"
       @cache[zone] = Set.new(nameservers.to_a.map &:normalise)
     end
 
