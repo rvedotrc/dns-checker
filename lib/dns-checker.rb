@@ -38,15 +38,13 @@ class Resolv
         return @labels == other.to_a && @absolute == other.absolute?
       end
 
-      def downcase
-        self
-      end
       def root?
         raise unless absolute?
         to_a.empty?
       end
       def parent
         raise unless absolute?
+        return nil if root?
         Resolv::DNS::Name.create(to_a[1..-1].join(".")+".")
       end
     end
