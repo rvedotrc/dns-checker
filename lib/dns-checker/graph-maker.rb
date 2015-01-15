@@ -142,11 +142,11 @@ module DNSChecker
     end
 
     def zone_node_id(zone)
-      "zone_" + zone.to_s.gsub("-", "__").gsub(".", "_")
+      "zone_" + zone.to_s.downcase.gsub("-", "__").gsub(".", "_")
     end
 
     def ns_node_id(ns)
-      "ns_" + ns.to_s.gsub("-", "__").gsub(".", "_")
+      "ns_" + ns.to_s.downcase.gsub("-", "__").gsub(".", "_")
     end
 
     def host_reachable(host)

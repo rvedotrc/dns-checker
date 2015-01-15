@@ -106,7 +106,7 @@ module DNSChecker
           puts "detect_intermediate_zones between #{closest_zone} and #{next_zone} by asking about #{try_zone}"
           resp = find_answer(try_zone, Resolv::DNS::Resource::IN::SOA)
           puts "Got answer #{resp.inspect}"
-          resp or break
+          break if !resp
           try_zone = try_zone.parent
         end
       end
