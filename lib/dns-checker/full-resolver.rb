@@ -30,11 +30,21 @@ module DNSChecker
       end
 
       def puts(string)
+        print "[#{@level}] "
         print "    " * @level
         super
       end
 
       def find_answer(name, type)
+        begin
+          @level = @level + 1
+          real_find_answer(name, type)
+        ensure
+          @level = @level - 1
+        end
+      end
+
+      def real_find_answer(name, type)
 
         while true
           puts ""
@@ -53,9 +63,15 @@ module DNSChecker
             .reduce([]) {|arr,nss| arr.concat nss.to_a; arr}
           puts "Zone #{closest_zone.inspect} nameservers resolve to #{nameserver_addresses.inspect}"
 
-          # TODO NXDOMAIN gets thrown as "Didn't get an answer from any nameserver"
           answer = @query_cache.get_answer(nameserver_addresses, name, type)
           puts "Got answer #{answer.inspect}"
+          if !answer
+            # resolv.rb catches NXDOMAIN and returns nil without ever calling
+            # the block - and I /think/ NXDOMAIN is the /only/ case where that
+            # happens.
+            puts "NXDOMAIN"
+            return
+          end
 
           next_zone, next_nameservers, additional_hosts = find_referral(answer, closest_zone, name)
           if next_zone
@@ -63,14 +79,14 @@ module DNSChecker
             seed_additional_hosts(additional_hosts)
             @zone_cache.add_zone(next_zone, Set.new(next_nameservers))
 
-            # TODO Detect intermediate zones?
+            # Detect intermediate zones
             # For example if you ask the "uk." zone about "example.co.uk.",
             # you'll get a referral to another zone, skipping over "co.uk.".
             # However, even though you don't see the referral (because the
             # nameservers for "uk." are also authoritative for "co.uk."), the
             # "co.uk." zone still exists as a zone on its own (it has its own
-            # SOA).  We could detect such cases by querying for the SOA
-            # separately.
+            # SOA).
+            detect_intermediate_zones(closest_zone, next_zone)
 
             next
           end
@@ -80,6 +96,19 @@ module DNSChecker
           return answer
         end
 
+      end
+
+      def detect_intermediate_zones(closest_zone, next_zone)
+        # We've just got a referral from closest_zone to next_zone.  Are there
+        # any zones in between?
+        try_zone = next_zone.parent
+        while try_zone != closest_zone
+          puts "detect_intermediate_zones between #{closest_zone} and #{next_zone} by asking about #{try_zone}"
+          resp = find_answer(try_zone, Resolv::DNS::Resource::IN::SOA)
+          puts "Got answer #{resp.inspect}"
+          resp or break
+          try_zone = try_zone.parent
+        end
       end
 
       def pad_nameservers(zone, nameserver_names)
@@ -113,20 +142,10 @@ module DNSChecker
         return addresses if addresses
 
         puts "Resolving #{name} to A"
-        a_answers = begin
-                      @level = @level + 1
-                      self.find_answer(name, Resolv::DNS::Resource::IN::A).answer
-                    ensure
-                      @level = @level - 1
-                    end
+        a_answers = find_answer(name, Resolv::DNS::Resource::IN::A).answer
 
         puts "Resolving #{name} to AAAA"
-        aaaa_answers = begin
-                         @level = @level + 1
-                         self.find_answer(name, Resolv::DNS::Resource::IN::AAAA).answer
-                        ensure
-                         @level = @level - 1
-                       end
+        aaaa_answers = find_answer(name, Resolv::DNS::Resource::IN::AAAA).answer
 
         puts "#{name.inspect} A -> #{a_answers}"
         puts "#{name.inspect} AAAA -> #{aaaa_answers}"

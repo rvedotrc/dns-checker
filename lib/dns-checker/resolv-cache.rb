@@ -20,11 +20,10 @@ module DNSChecker
 
       nameservers.shuffle.each do |ns|
         begin
-          if answer = @fetcher.get_answer_lookup(ns, zone, type)
-            write_cache(ns, zone, type, answer)
-            puts "(fetched)"
-            return answer
-          end
+          answer = @fetcher.get_answer_lookup(ns, zone, type)
+          write_cache(ns, zone, type, answer)
+          puts "(fetched)"
+          return answer
         rescue Errno::ENETUNREACH, Errno::EHOSTUNREACH => e
           puts "(got error #{e} while querying #{ns} - skipping this server)"
         end
@@ -42,7 +41,7 @@ module DNSChecker
 
       time, answer = data
 
-      if answer_expired?(answer, time, now)
+      if answer && answer_expired?(answer, time, now)
         puts "cached but expired"
         return nil
       end
